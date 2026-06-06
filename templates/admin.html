@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <!--
+  ============================================================
+  Real Estate Listing Platform - Pune
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - RealEstate Pune</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body class="bg-light">
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/"><i class="fa fa-shield-alt"></i> Admin Panel</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/listings">Listings</a></li>
+          <li class="nav-item">
+            <span class="nav-link text-warning"><i class="fa fa-user"></i> Admin</span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#" onclick="logout()">
+              <i class="fa fa-sign-out-alt"></i> Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-4" id="adminTabs">
+      <li class="nav-item">
+        <a class="nav-link active" href="#" onclick="showTab('pending')">
+          <i class="fa fa-clock"></i> Pending Properties
+          <span class="badge bg-warning ms-1" id="pendingCount">0</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="showTab('all')">
+          <i class="fa fa-list"></i> All Properties
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="showTab('users')">
+          <i class="fa fa-users"></i> All Users
+        </a>
+      </li>
+    </ul>
+
+    <!-- PENDING PROPERTIES TAB -->
+    <div id="tab-pending">
+      <h5 class="mb-3">Pending Approval</h5>
+      <div id="pendingList">
+        <div class="text-center py-4">
+          <div class="spinner-border text-danger"></div>
+          <p class="mt-2">Loading...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL PROPERTIES TAB -->
+    <div id="tab-all" class="d-none">
+      <h5 class="mb-3">All Properties</h5>
+      <div id="allPropertiesList">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL USERS TAB -->
+    <div id="tab-users" class="d-none">
+      <h5 class="mb-3">Registered Users</h5>
+      <div id="usersList">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+  <p class="mb-0">&copy; 2026 Romil Pawar | Real Estate Listing Platform - Pune</p>
+  <p class="mb-0 small text-muted">All Rights Reserved</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+
+    // ── CHECK ADMIN LOGIN ──
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'admin') {
+      alert('Access denied! Admins only.');
+      window.location.href = '/login';
+    }
+
+    // ── LOGOUT ──
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    // ── SHOW TAB ──
+    function showTab(tab) {
+      // Hide all tabs
+      ['pending', 'all', 'users'].forEach(t => {
+        document.getElementById('tab-' + t).classList.add('d-none');
+      });
+      // Remove active from all nav links
+      document.querySelectorAll('#adminTabs .nav-link').forEach(el => {
+        el.classList.remove('active');
+      });
+      // Show selected tab
+      document.getElementById('tab-' + tab).classList.remove('d-none');
+      event.target.classList.add('active');
+
+      // Load data
+      if (tab === 'pending') loadPending();
+      if (tab === 'all')     loadAllProperties();
+      if (tab === 'users')   loadUsers();
+    }
+
+    // ── LOAD PENDING PROPERTIES ──
+    async function loadPending() {
+      const res  = await fetch('/api/admin/pending');
+      const data = await res.json();
+      const container = document.getElementById('pendingList');
+      document.getElementById('pendingCount').innerText = data.length;
+
+      if (!data.length) {
+        container.innerHTML = `
+          <div class="alert alert-success">
+            <i class="fa fa-check-circle"></i> No pending properties. All caught up!
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = data.map(p => `
+        <div class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <h5 class="mb-1">${p.title}</h5>
+                <p class="text-muted mb-1">
+                  <i class="fa fa-map-marker-alt"></i> ${p.location}, ${p.city} &nbsp;|&nbsp;
+                  <i class="fa fa-tag"></i> ₹${Number(p.price).toLocaleString('en-IN')} &nbsp;|&nbsp;
+                  <span class="badge bg-secondary">${p.listing_type}</span>
+                  <span class="badge bg-info ms-1">${p.property_type}</span>
+                </p>
+                <p class="text-muted small mb-0">
+                  ${p.bhk ? p.bhk + ' BHK • ' : ''}
+                  ${p.area_sqft ? p.area_sqft + ' sqft' : ''}
+                </p>
+                <p class="text-muted small">${p.description || ''}</p>
+              </div>
+              <div class="col-md-4 text-end">
+                <button class="btn btn-success me-2" onclick="approveProperty(${p.id}, 'approved')">
+                  <i class="fa fa-check"></i> Approve
+                </button>
+                <button class="btn btn-danger" onclick="approveProperty(${p.id}, 'rejected')">
+                  <i class="fa fa-times"></i> Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    // ── APPROVE / REJECT ──
+    async function approveProperty(id, status) {
+      await fetch('/api/admin/approve/' + id, {
+        method:  'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body:    JSON.stringify({ status })
+      });
+      loadPending();
+    }
+
+    // ── LOAD ALL PROPERTIES ──
+    async function loadAllProperties() {
+      const res  = await fetch('/api/admin/all-properties');
+      const data = await res.json();
+      const container = document.getElementById('allPropertiesList');
+
+      if (!data.length) {
+        container.innerHTML = `<p class="text-muted">No properties found.</p>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>City</th>
+                <th>Price</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(p => `
+                <tr>
+                  <td>${p.id}</td>
+                  <td>${p.title}</td>
+                  <td>${p.city}</td>
+                  <td>₹${Number(p.price).toLocaleString('en-IN')}</td>
+                  <td><span class="badge bg-secondary">${p.listing_type}</span></td>
+                  <td>
+                    <span class="badge bg-${
+                      p.status==='approved' ? 'success' :
+                      p.status==='rejected' ? 'danger' : 'warning'}">
+                      ${p.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-danger"
+                      onclick="deleteProperty(${p.id})">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    // ── DELETE PROPERTY ──
+    async function deleteProperty(id) {
+      if (!confirm('Delete this property?')) return;
+      await fetch('/api/properties/' + id, { method: 'DELETE' });
+      loadAllProperties();
+    }
+
+    // ── LOAD ALL USERS ──
+    async function loadUsers() {
+      const res  = await fetch('/api/admin/users');
+      const data = await res.json();
+      const container = document.getElementById('usersList');
+
+      container.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(u => `
+                <tr>
+                  <td>${u.id}</td>
+                  <td>${u.name}</td>
+                  <td>${u.email}</td>
+                  <td>${u.phone || 'N/A'}</td>
+                  <td>
+                    <span class="badge bg-${
+                      u.role==='admin' ? 'danger' :
+                      u.role==='agent' ? 'primary' : 'secondary'}">
+                      ${u.role}
+                    </span>
+                  </td>
+                  <td>${new Date(u.created_at).toLocaleDateString('en-IN')}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    // ── LOAD ON START ──
+    loadPending();
+
+  </script>
+</body>
+</html>
+<!--
+  ============================================================
+  Real Estate Listing Platform - Pune
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+-->

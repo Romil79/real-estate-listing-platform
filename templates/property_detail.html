@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <!--
+  ============================================================
+  Real Estate Listing Platform - Pune
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Property Detail - RealEstate Pune</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body class="bg-light">
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/"><i class="fa fa-home"></i> RealEstate Pune</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/listings">Listings</a></li>
+          <li class="nav-item" id="navLogin"><a class="nav-link" href="/login">Login</a></li>
+          <li class="nav-item" id="navRegister"><a class="nav-link" href="/register">Register</a></li>
+          <li class="nav-item d-none" id="navDashboard"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+          <li class="nav-item d-none" id="navUser">
+            <span class="nav-link text-warning"><i class="fa fa-user"></i> <span id="navUserName"></span></span>
+          </li>
+          <li class="nav-item d-none" id="navLogout">
+            <a class="nav-link text-danger" href="#" onclick="logout()">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-4" id="propertyDetail">
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+      <p class="mt-2">Loading property...</p>
+    </div>
+  </div>
+
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+  <p class="mb-0">&copy; 2026 Romil Pawar | Real Estate Listing Platform - Pune</p>
+  <p class="mb-0 small text-muted">All Rights Reserved</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+
+    // ── CHECK LOGIN ──
+    function checkLogin() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) {
+        document.getElementById('navLogin').classList.add('d-none');
+        document.getElementById('navRegister').classList.add('d-none');
+        document.getElementById('navDashboard').classList.remove('d-none');
+        document.getElementById('navUser').classList.remove('d-none');
+        document.getElementById('navLogout').classList.remove('d-none');
+        document.getElementById('navUserName').innerText = user.name;
+      }
+    }
+
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    // ── GET PROPERTY ID FROM URL ──
+    const pathParts = window.location.pathname.split('/');
+    const propertyId = pathParts[pathParts.length - 1];
+
+    // ── LOAD PROPERTY ──
+    async function loadProperty() {
+      const res = await fetch(`/api/properties/${propertyId}`);
+      const p   = await res.json();
+      const container = document.getElementById('propertyDetail');
+
+      if (!res.ok) {
+        container.innerHTML = `<div class="alert alert-danger">Property not found.</div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <a href="/listings" class="btn btn-outline-secondary mb-4">
+          <i class="fa fa-arrow-left"></i> Back to Listings
+        </a>
+
+        <div class="row">
+
+          <!-- LEFT SIDE -->
+          <div class="col-md-7 mb-4">
+            <img src="${p.image_url || 'https://via.placeholder.com/800x400?text=No+Image'}"
+                 class="img-fluid rounded shadow mb-4"
+                 style="width:100%; height:350px; object-fit:cover;"/>
+
+            <div class="card p-4 shadow-sm">
+              <div class="mb-2">
+                <span class="badge bg-${p.listing_type === 'rent' ? 'warning' : 'success'} me-2 fs-6">
+                  ${p.listing_type === 'rent' ? 'FOR RENT' : 'FOR SALE'}
+                </span>
+                <span class="badge bg-secondary fs-6">${p.property_type}</span>
+              </div>
+
+              <h3 class="mt-2">${p.title}</h3>
+              <p class="text-muted">
+                <i class="fa fa-map-marker-alt text-primary"></i>
+                ${p.location}, ${p.city}, Pune
+              </p>
+              <h3 class="text-primary">₹${Number(p.price).toLocaleString('en-IN')}
+                ${p.listing_type === 'rent' ? '<small class="text-muted fs-6">/month</small>' : ''}
+              </h3>
+
+              <hr/>
+
+              <!-- PROPERTY STATS -->
+              <div class="row text-center mb-3">
+                <div class="col-4">
+                  <div class="p-3 bg-light rounded">
+                    <i class="fa fa-bed fa-2x text-primary mb-1"></i>
+                    <p class="mb-0 fw-bold">${p.bhk || 'N/A'}</p>
+                    <small class="text-muted">BHK</small>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-3 bg-light rounded">
+                    <i class="fa fa-ruler-combined fa-2x text-primary mb-1"></i>
+                    <p class="mb-0 fw-bold">${p.area_sqft || 'N/A'}</p>
+                    <small class="text-muted">Sq.ft</small>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-3 bg-light rounded">
+                    <i class="fa fa-building fa-2x text-primary mb-1"></i>
+                    <p class="mb-0 fw-bold">${p.property_type}</p>
+                    <small class="text-muted">Type</small>
+                  </div>
+                </div>
+              </div>
+
+              <hr/>
+
+              <h5>Description</h5>
+              <p class="text-muted">${p.description || 'No description provided.'}</p>
+
+              <hr/>
+
+              <h5>Owner / Agent Details</h5>
+              <p class="mb-1"><i class="fa fa-user text-primary"></i> <strong>${p.owner_name}</strong></p>
+              <p class="mb-0"><i class="fa fa-phone text-primary"></i> ${p.owner_phone || 'Not provided'}</p>
+            </div>
+          </div>
+
+          <!-- RIGHT SIDE: INQUIRY FORM -->
+          <div class="col-md-5 mb-4">
+            <div class="card p-4 shadow-sm sticky-top" style="top:20px;">
+              <h5 class="mb-3 text-primary">
+                <i class="fa fa-envelope"></i> Send Inquiry
+              </h5>
+              <div id="inquiryAlert"></div>
+              <div class="mb-3">
+                <label class="form-label">Your Name</label>
+                <input type="text" id="inqName" class="form-control" placeholder="Enter your name"/>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Your Email</label>
+                <input type="email" id="inqEmail" class="form-control" placeholder="Enter your email"/>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Your Phone</label>
+                <input type="text" id="inqPhone" class="form-control" placeholder="Enter your phone"/>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Message</label>
+                <textarea id="inqMessage" class="form-control" rows="4"
+                  placeholder="I am interested in this property. Please contact me."></textarea>
+              </div>
+              <button class="btn btn-primary w-100 py-2" onclick="sendInquiry()">
+                <i class="fa fa-paper-plane"></i> Send Inquiry
+              </button>
+
+              <hr/>
+              <div class="text-center">
+                <p class="text-muted small mb-1">Or call directly</p>
+                <h5 class="text-primary">
+                  <i class="fa fa-phone"></i> ${p.owner_phone || 'N/A'}
+                </h5>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    // ── SEND INQUIRY ──
+    async function sendInquiry() {
+      const body = {
+        property_id:  parseInt(propertyId),
+        sender_name:  document.getElementById('inqName').value.trim(),
+        sender_email: document.getElementById('inqEmail').value.trim(),
+        sender_phone: document.getElementById('inqPhone').value.trim(),
+        message:      document.getElementById('inqMessage').value.trim()
+      };
+      const box = document.getElementById('inquiryAlert');
+
+      if (!body.sender_name || !body.sender_email || !body.message) {
+        box.innerHTML = `<div class="alert alert-warning">Please fill in all fields.</div>`;
+        return;
+      }
+
+      const res  = await fetch('/api/inquiries', {
+        method:  'POST',
+        headers: {'Content-Type': 'application/json'},
+        body:    JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        box.innerHTML = `<div class="alert alert-success">
+          <i class="fa fa-check-circle"></i> Inquiry sent! The owner will contact you soon.
+        </div>`;
+        // Clear form
+        ['inqName','inqEmail','inqPhone','inqMessage']
+          .forEach(id => document.getElementById(id).value = '');
+      } else {
+        box.innerHTML = `<div class="alert alert-danger">Something went wrong. Try again.</div>`;
+      }
+    }
+
+    checkLogin();
+    loadProperty();
+  </script>
+</body>
+</html>
+<!--
+  ============================================================
+  Real Estate Listing Platform - Pune
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+-->

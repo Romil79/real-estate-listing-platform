@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <!--
+  ============================================================
+  Real Estate Listing Platform - Pune
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Listings - RealEstate Pune</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body class="bg-light">
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/"><i class="fa fa-home"></i> RealEstate Pune</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/listings">Listings</a></li>
+          <li class="nav-item" id="navLogin"><a class="nav-link" href="/login">Login</a></li>
+          <li class="nav-item" id="navRegister"><a class="nav-link" href="/register">Register</a></li>
+          <li class="nav-item d-none" id="navDashboard"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+          <li class="nav-item d-none" id="navUser">
+            <span class="nav-link text-warning"><i class="fa fa-user"></i> <span id="navUserName"></span></span>
+          </li>
+          <li class="nav-item d-none" id="navLogout">
+            <a class="nav-link text-danger" href="#" onclick="logout()">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+    <h3 class="mb-4">Properties in Pune</h3>
+
+    <!-- FILTERS -->
+    <div class="card p-3 mb-4 shadow-sm">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <select id="filterCity" class="form-select">
+            <option value="">All Areas</option>
+            <option value="Kothrud">Kothrud</option>
+            <option value="Baner">Baner</option>
+            <option value="Hinjewadi">Hinjewadi</option>
+            <option value="Wakad">Wakad</option>
+            <option value="Hadapsar">Hadapsar</option>
+            <option value="Viman Nagar">Viman Nagar</option>
+            <option value="Koregaon Park">Koregaon Park</option>
+            <option value="Aundh">Aundh</option>
+            <option value="Pimple Saudagar">Pimple Saudagar</option>
+            <option value="Shivajinagar">Shivajinagar</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select id="filterType" class="form-select">
+            <option value="">Buy / Rent</option>
+            <option value="buy">Buy</option>
+            <option value="rent">Rent</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select id="filterProperty" class="form-select">
+            <option value="">Property Type</option>
+            <option value="apartment">Apartment</option>
+            <option value="house">House</option>
+            <option value="villa">Villa</option>
+            <option value="plot">Plot</option>
+            <option value="commercial">Commercial</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input type="number" id="filterMinPrice" class="form-control" placeholder="Min Price"/>
+        </div>
+        <div class="col-md-2">
+          <input type="number" id="filterMaxPrice" class="form-control" placeholder="Max Price"/>
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-primary w-100" onclick="loadProperties()">
+            <i class="fa fa-search"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS COUNT -->
+    <p class="text-muted" id="resultCount"></p>
+
+    <!-- PROPERTIES GRID -->
+    <div class="row" id="propertiesList">
+      <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Loading properties...</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+  <p class="mb-0">&copy; 2026 Romil Pawar | Real Estate Listing Platform - Pune</p>
+  <p class="mb-0 small text-muted">All Rights Reserved</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+
+    // ── CHECK LOGIN ──
+    function checkLogin() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) {
+        document.getElementById('navLogin').classList.add('d-none');
+        document.getElementById('navRegister').classList.add('d-none');
+        document.getElementById('navDashboard').classList.remove('d-none');
+        document.getElementById('navUser').classList.remove('d-none');
+        document.getElementById('navLogout').classList.remove('d-none');
+        document.getElementById('navUserName').innerText = user.name;
+      }
+    }
+
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    // ── LOAD PROPERTIES ──
+    async function loadProperties() {
+      const city     = document.getElementById('filterCity').value;
+      const type     = document.getElementById('filterType').value;
+      const propType = document.getElementById('filterProperty').value;
+      const minPrice = document.getElementById('filterMinPrice').value;
+      const maxPrice = document.getElementById('filterMaxPrice').value;
+
+      let url = '/api/properties?';
+      if (city)     url += `city=${city}&`;
+      if (type)     url += `listing_type=${type}&`;
+      if (propType) url += `property_type=${propType}&`;
+      if (minPrice) url += `min_price=${minPrice}&`;
+      if (maxPrice) url += `max_price=${maxPrice}&`;
+
+      const res  = await fetch(url);
+      const data = await res.json();
+      const container = document.getElementById('propertiesList');
+      document.getElementById('resultCount').innerText =
+        data.length ? `Showing ${data.length} properties` : '';
+
+      if (!data.length) {
+        container.innerHTML = `
+          <div class="col-12 text-center py-5">
+            <i class="fa fa-home fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No properties found</h5>
+            <p class="text-muted">Try changing your filters</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = data.map(p => `
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm property-card">
+            <img src="${p.image_url || 'https://via.placeholder.com/400x200?text=No+Image'}"
+                 class="card-img-top" style="height:200px; object-fit:cover;" alt="Property"/>
+            <div class="card-body">
+              <span class="badge bg-${p.listing_type === 'rent' ? 'warning' : 'success'} mb-2">
+                ${p.listing_type.toUpperCase()}
+              </span>
+              <span class="badge bg-secondary mb-2 ms-1">${p.property_type}</span>
+              <h5 class="card-title">${p.title}</h5>
+              <p class="text-muted mb-1">
+                <i class="fa fa-map-marker-alt"></i> ${p.location}, ${p.city}
+              </p>
+              <h5 class="text-primary">₹${Number(p.price).toLocaleString('en-IN')}</h5>
+              <p class="text-muted small">
+                ${p.bhk ? p.bhk + ' BHK • ' : ''}
+                ${p.area_sqft ? p.area_sqft + ' sqft' : ''}
+              </p>
+              <p class="text-muted small">
+                <i class="fa fa-user"></i> ${p.owner_name} &nbsp;
+                <i class="fa fa-phone"></i> ${p.owner_phone || 'N/A'}
+              </p>
+            </div>
+            <div class="card-footer bg-white">
+              <a href="/property/${p.id}" class="btn btn-outline-primary w-100">
+                <i class="fa fa-eye"></i> View Details
+              </a>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    // ── READ URL PARAMS ON PAGE LOAD ──
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('city'))          document.getElementById('filterCity').value = params.get('city');
+      if (params.get('listing_type'))  document.getElementById('filterType').value = params.get('listing_type');
+      if (params.get('property_type')) document.getElementById('filterProperty').value = params.get('property_type');
+      checkLogin();
+      loadProperties();
+    }
+
+  </script>
+</body>
+</html>
+<!--
+  ============================================================
+  Real Estate Listing Platform - Pune
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+-->

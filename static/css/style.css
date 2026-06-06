@@ -1,0 +1,47 @@
+/*
+  ============================================================
+  Real Estate Listing Platform - Stylesheet
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+*/
+.hero-section {
+  background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+              url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1400') center/cover no-repeat;
+  min-height: 480px;
+  padding: 60px 20px;
+}
+
+.property-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.property-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+}
+
+.area-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 10px;
+}
+.area-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.navbar-brand {
+  font-size: 1.4rem;
+}
+/*
+  ============================================================
+  Real Estate Listing Platform - Stylesheet
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+*/

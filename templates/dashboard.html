@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <!--
+  ============================================================
+  Real Estate Listing Platform - Pune
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - RealEstate Pune</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body class="bg-light">
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/"><i class="fa fa-home"></i> RealEstate Pune</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/listings">Listings</a></li>
+          <li class="nav-item">
+            <span class="nav-link text-warning"><i class="fa fa-user"></i> <span id="navUserName"></span></span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-danger" href="#" onclick="logout()">
+              <i class="fa fa-sign-out-alt"></i> Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+
+    <!-- WELCOME BAR -->
+    <div class="alert alert-primary d-flex align-items-center">
+      <i class="fa fa-user-circle fa-2x me-3"></i>
+      <div>
+        <h5 class="mb-0">Welcome, <span id="welcomeName"></span>!</h5>
+        <small id="roleLabel" class="text-muted"></small>
+      </div>
+    </div>
+
+    <!-- AGENT SECTION: Add Property -->
+    <div id="agentSection" class="d-none">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="fa fa-plus-circle"></i> Add New Property</h5>
+        </div>
+        <div class="card-body">
+          <div id="addPropertyAlert"></div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Property Title</label>
+              <input type="text" id="propTitle" class="form-control" placeholder="e.g. 2BHK Flat in Baner"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Price (₹)</label>
+              <input type="number" id="propPrice" class="form-control" placeholder="e.g. 4500000"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Location / Area</label>
+              <select id="propCity" class="form-select">
+                <option value="">Select Area</option>
+                <option value="Kothrud">Kothrud</option>
+                <option value="Baner">Baner</option>
+                <option value="Hinjewadi">Hinjewadi</option>
+                <option value="Wakad">Wakad</option>
+                <option value="Hadapsar">Hadapsar</option>
+                <option value="Viman Nagar">Viman Nagar</option>
+                <option value="Koregaon Park">Koregaon Park</option>
+                <option value="Aundh">Aundh</option>
+                <option value="Pimple Saudagar">Pimple Saudagar</option>
+                <option value="Shivajinagar">Shivajinagar</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Full Address</label>
+              <input type="text" id="propLocation" class="form-control" placeholder="e.g. Survey No. 12, Baner Road"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Property Type</label>
+              <select id="propType" class="form-select">
+                <option value="apartment">Apartment</option>
+                <option value="house">House</option>
+                <option value="villa">Villa</option>
+                <option value="plot">Plot</option>
+                <option value="commercial">Commercial</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Listing Type</label>
+              <select id="propListingType" class="form-select">
+                <option value="buy">For Sale (Buy)</option>
+                <option value="rent">For Rent</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">BHK</label>
+              <select id="propBHK" class="form-select">
+                <option value="1">1 BHK</option>
+                <option value="2">2 BHK</option>
+                <option value="3">3 BHK</option>
+                <option value="4">4 BHK</option>
+                <option value="5">5+ BHK</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Area (sqft)</label>
+              <input type="number" id="propArea" class="form-control" placeholder="e.g. 950"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Property Image</label>
+<input type="file" id="propImageFile" class="form-control mb-2" accept="image/*" onchange="previewImage(this)"/>
+<img id="imagePreview" src="" class="img-fluid rounded mb-2 d-none" style="max-height:200px;"/>
+<input type="text" id="propImage" class="form-control" placeholder="Or paste image URL here"/>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <textarea id="propDesc" class="form-control" rows="3"
+                placeholder="Describe the property - amenities, nearby landmarks, etc."></textarea>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary px-4" onclick="addProperty()">
+                <i class="fa fa-paper-plane"></i> Submit Property
+              </button>
+              <small class="text-muted ms-3">Property will be visible after admin approval.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENT'S LISTINGS -->
+      <!-- AGENT'S LISTINGS -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fa fa-list"></i> My Listings</h5>
+        </div>
+        <div class="card-body" id="myListings">
+          <div class="text-center py-3">
+            <div class="spinner-border text-primary"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INQUIRIES SECTION -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fa fa-envelope text-primary"></i> Inquiries Received</h5>
+          <span class="badge bg-primary" id="inquiryCount">0</span>
+        </div>
+        <div class="card-body" id="myInquiries">
+          <div class="text-center py-3">
+            <div class="spinner-border text-primary"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USER SECTION -->
+    <div id="userSection" class="d-none">
+      <div class="card shadow-sm p-4 text-center">
+        <i class="fa fa-search fa-3x text-primary mb-3"></i>
+        <h5>Browse Properties in Pune</h5>
+        <p class="text-muted">Find your perfect home across all areas of Pune.</p>
+        <a href="/listings" class="btn btn-primary">Browse Listings</a>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+  <p class="mb-0">&copy; 2026 Romil Pawar | Real Estate Listing Platform - Pune</p>
+  <p class="mb-0 small text-muted">All Rights Reserved</p>
+</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+
+    // ── CHECK LOGIN ──
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) window.location.href = '/login';
+
+    document.getElementById('navUserName').innerText  = user.name;
+    document.getElementById('welcomeName').innerText  = user.name;
+    document.getElementById('roleLabel').innerText    =
+      user.role === 'agent' ? 'Agent Account — You can list properties' :
+      user.role === 'admin' ? 'Admin Account' : 'User Account — Browse and inquire';
+
+    // Show correct section based on role
+    if (user.role === 'agent' || user.role === 'admin') {
+      document.getElementById('agentSection').classList.remove('d-none');
+      loadMyListings();
+    } else {
+      document.getElementById('userSection').classList.remove('d-none');
+    }
+
+    // ── LOGOUT ──
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    // ── ADD PROPERTY ──
+    async function addProperty() {
+      const box = document.getElementById('addPropertyAlert');
+
+      const body = {
+        title:        document.getElementById('propTitle').value.trim(),
+        price:        document.getElementById('propPrice').value,
+        city:         document.getElementById('propCity').value,
+        location:     document.getElementById('propLocation').value.trim(),
+        property_type:document.getElementById('propType').value,
+        listing_type: document.getElementById('propListingType').value,
+        bhk:          document.getElementById('propBHK').value,
+        area_sqft:    document.getElementById('propArea').value,
+        image_url:    document.getElementById('propImage').value.trim(),
+        description:  document.getElementById('propDesc').value.trim(),
+        owner_id:     user.id
+      };
+
+      if (!body.title || !body.price || !body.city || !body.location) {
+        box.innerHTML = `<div class="alert alert-warning">Please fill in all required fields.</div>`;
+        return;
+      }
+
+      const res  = await fetch('/api/properties', {
+        method:  'POST',
+        headers: {'Content-Type': 'application/json'},
+        body:    JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        box.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+        // Clear form
+        ['propTitle','propPrice','propLocation','propArea','propImage','propDesc']
+          .forEach(id => document.getElementById(id).value = '');
+        loadMyListings();
+      } else {
+        box.innerHTML = `<div class="alert alert-danger">Something went wrong. Try again.</div>`;
+      }
+    }
+
+    // ── LOAD MY LISTINGS ──
+    async function loadMyListings() {
+      const res  = await fetch('/api/properties/my/' + user.id);
+      const data = await res.json();
+      const container = document.getElementById('myListings');
+
+      if (!data.length) {
+        container.innerHTML = `<p class="text-muted text-center py-3">
+          You have not listed any properties yet.</p>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Title</th>
+                <th>Area</th>
+                <th>Price</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(p => `
+                <tr>
+                  <td>${p.title}</td>
+                  <td>${p.city}</td>
+                  <td>₹${Number(p.price).toLocaleString('en-IN')}</td>
+                  <td><span class="badge bg-secondary">${p.listing_type}</span></td>
+                  <td>
+                    <span class="badge bg-${
+                      p.status === 'approved' ? 'success' :
+                      p.status === 'rejected' ? 'danger' : 'warning'}">
+                      ${p.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-danger"
+                      onclick="deleteProperty(${p.id})">
+                      <i class="fa fa-trash"></i> Delete
+                    </button>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    // ── DELETE PROPERTY ──
+    async function deleteProperty(id) {
+      if (!confirm('Are you sure you want to delete this property?')) return;
+      await fetch('/api/properties/' + id, { method: 'DELETE' });
+      loadMyListings();
+    }
+    function previewImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview = document.getElementById('imagePreview');
+    preview.src = e.target.result;
+    preview.classList.remove('d-none');
+    // Store base64 in the URL field temporarily
+    document.getElementById('propImage').value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+  </script>
+</body>
+</html>
+<!--
+  ============================================================
+  Real Estate Listing Platform - Pune
+  Developer  : Romil Pawar 
+  Copyright  : © 2026 Romil Pawar. All Rights Reserved.
+  ============================================================
+-->
